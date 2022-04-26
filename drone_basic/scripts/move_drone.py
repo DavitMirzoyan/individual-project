@@ -207,7 +207,7 @@ class avoiding_walls():
         # pillow image must be in 'PIL.PngImagePligin.PngImageFile' type
         # that is why I saved the image and then opned it with Pillow Image
         
-        self.count += 1
+        #self.count += 1
         cv2.imwrite("pillow.png", image)
         image = img.open("pillow.png")
         image = self.convert_to_tensor(image)
