@@ -242,7 +242,7 @@ class avoiding_walls():
 
     def find_black_color(self, image):
         #boundaries = [([235, 235, 235], [255, 255, 255])] # for model
-        boundaries = [([0, 0, 0], [2, 2, 2])] # for alternative solution
+        boundaries = [([0, 0, 0], [3, 3, 3])] # for alternative solution
 
         for (lower, upper) in boundaries:
             lower = np.array(lower, dtype = "uint8")
@@ -275,7 +275,7 @@ class avoiding_walls():
             count+=1
             #print(cv2.contourArea(i))
 
-            if cv2.contourArea(i) < 2000:
+            if cv2.contourArea(i) < 100:
                 if count != len(sorted_contours):
                     continue
                 else:
