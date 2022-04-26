@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+
+<launch>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/bigger_maze.world"/>
+  </include>
+
+  <group ns="drone">
+    <include file="$(find hector_quadrotor_gazebo)/launch/spawn_quadrotor.launch">
+      <arg name="name" default="my_drone"/>
+      <arg name="model" value="$(find drone_basic)/urdf/hector_kinect_laser.urdf.xacro"/>
+    </include>
+  </group>
+  
+  <group ns="robot_1">
+    <param name="tf_prefix" value="robot_tf"/>
+    <param name="robot_description" 
+           command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_waffle_pi.urdf.xacro" />
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" type="double" value="50.0" />
+    </node>
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" 
+          args="-urdf -model turtlebot3_waffle_pi -x 1 -y 0 -z 0 -Y 0 -param robot_description" />
+  </group>
+  
+  <arg name="map_file" default="$(find drone_basic)/maze_maps/bigger_maze_map.yaml"/> 
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+  
+  <include file="$(find drone_basic)/launch/amcl_drone.launch"/>
+  <include file="$(find turtlebot3_navigation)/launch/amcl.launch"/>
+    
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base_drone" output="screen">
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+
+    <rosparam file="$(find drone_basic)/param/costmap_common_params_drone.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find drone_basic)/param/costmap_common_params_drone.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find drone_basic)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find drone_basic)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find drone_basic)/param/move_base_params.yaml" command="load" />      
+    <rosparam file="$(find drone_basic)/param/dwa_local_planner_params_drone.yaml" command="load" />
+    <remap from="cmd_vel" to="/drone/cmd_vel"/>
+    <remap from="odom" to="/drone/ground_truth/state"/>
+    <param name="DWAPlannerROS/min_vel_x" value="0.0" />
+    <remap from="/move_base/goal"         to="/move_base_drone/goal" />
+    <remap from="/move_base/result"       to="/move_base_drone/result" />
+    <remap from="/move_base/cancel"       to="/move_base_drone/cancel" />
+    <remap from="/move_base/feedback"     to="/move_base_drone/feedback" />
+    <remap from="/move_base/status"       to="/move_base_drone/status" />
+  </node> 
+    
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base_robot" output="screen">
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+    <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_waffle_pi.yaml" command="load" 
+                                                                                              ns="global_costmap" />
+    <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_waffle_pi.yaml" command="load" 
+                                                                                              ns="local_costmap" />
+    <rosparam file="$(find turtlebot3_navigation)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find turtlebot3_navigation)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find turtlebot3_navigation)/param/move_base_params.yaml" command="load" />
+    <rosparam file="$(find turtlebot3_navigation)/param/dwa_local_planner_params_waffle_pi.yaml" command="load" />
+    <remap from="cmd_vel" to="/robot_1/cmd_vel"/>
+    <remap from="odom" to="/robot_1/odom"/>
+    <param name="DWAPlannerROS/min_vel_x" value="0.0" />
+    <remap from="/move_base/goal"         to="/move_base_robot/goal" />
+    <remap from="/move_base/result"       to="/move_base_robot/result" />
+    <remap from="/move_base/cancel"       to="/move_base_robot/cancel" />
+    <remap from="/move_base/feedback"     to="/move_base_robot/feedback" />
+    <remap from="/move_base/status"       to="/move_base_robot/status" />
+  </node>
+  
+  <node pkg="rviz" type="rviz" name="rviz" required="true"  args="-d $(find drone_basic)/rviz/my.rviz"/>
+</launch>

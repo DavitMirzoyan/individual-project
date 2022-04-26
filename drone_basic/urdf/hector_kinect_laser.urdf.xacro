@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<robot name="quadrotor" xmlns:xacro="http://www.ros.org/wiki/xacro">
+   
+    <xacro:property name="M_PI" value="3.1415926535897931" />
+    <xacro:include filename="$(find drone_basic)/urdf/quadrotor_base.urdf.xacro" />
+    <xacro:quadrotor_base_macro />
+
+    <xacro:include filename="$(find drone_basic)/sensors/hokuyo_utm30lx.urdf.xacro" />
+    <xacro:hokuyo_utm30lx name="laser0" parent="base_link" ros_topic="scan" update_rate="40" 
+                          ray_count="200" min_angle="-180" max_angle="180">
+      <origin xyz="0.0 0.0 -0.097" rpy="${M_PI} 0 0"/>
+    </xacro:hokuyo_utm30lx>
+    
+    <xacro:include filename="$(find drone_basic)/sensors/kinect_camera.urdf.xacro" />
+    <xacro:kinect_camera name="kinect" parent="base_link">
+      <origin xyz="0.1 0. -0.03 " rpy="0 0.57 0"/>
+    </xacro:kinect_camera>
+
+
+
+    <xacro:include filename="$(find hector_quadrotor_gazebo)/urdf/quadrotor_plugins.gazebo.xacro" />
+
+</robot>
+  
